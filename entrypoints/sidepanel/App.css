@@ -1,0 +1,33 @@
+.sidepanel-app {
+  height: 100vh;
+  width: 100%;
+  overflow-y: auto;
+}
+
+/* Sidepanel specific styles */
+.translator-container {
+  padding: 16px !important;
+  max-width: none !important;
+  margin: 0 !important;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* Make sure the content fits in the sidepanel */
+.translator-container h1 {
+  font-size: 1.5em !important;
+  margin-bottom: 16px !important;
+}
+
+.translator-container textarea {
+  width: calc(100% - 16px) !important;
+  box-sizing: border-box;
+}
+
+.translator-container select {
+  box-sizing: border-box;
+}
+
+.translator-container button {
+  box-sizing: border-box;
+} 
