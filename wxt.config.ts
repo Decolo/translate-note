@@ -11,10 +11,14 @@ export default defineConfig({
     },
   }),
   manifest: {
-    permissions: ['storage', 'sidePanel'],
+    permissions: ['storage', 'sidePanel', 'identity'],
     action: {
       default_title: "AI Translator",
       // 不设置 default_popup，这样点击就会触发 onClicked 事件
+    },
+    oauth2: {
+      client_id: "<client ID>",
+      scopes: ["openid", "email", "profile"],
     },
   },
 });
