@@ -15,20 +15,10 @@ import {
 } from "../../services/storageService";
 
 import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { getSourceLanguages, getTargetLanguages } from "@/lib/constants";
 
 import Selector from "../selector";
-import { Button } from "@/components/ui/button";
-
-const LANGUAGES = [
-  { code: "en", name: "English" },
-  { code: "zh-CN", name: "Chinese (Simplified)" },
-  { code: "ja", name: "Japanese" },
-  { code: "ko", name: "Korean" },
-  { code: "fr", name: "French" },
-  { code: "de", name: "German" },
-  { code: "es", name: "Spanish" },
-  { code: "ru", name: "Russian" },
-];
 
 export function Translator() {
   const [inputText, setInputText] = useState("");
@@ -37,8 +27,11 @@ export function Translator() {
   const [targetLanguage, setTargetLanguage] = useState("en");
   const [isTranslating, setIsTranslating] = useState(false);
   const [error, setError] = useState("");
-  // const [history, setHistory] = useState<TranslationResult[]>([]);
-  // const [showHistory, setShowHistory] = useState(false);
+  const [history, setHistory] = useState<TranslationResult[]>([]);
+
+  // Get language options
+  const sourceLanguages = getSourceLanguages();
+  const targetLanguages = getTargetLanguages();
 
   // Load translation history on component mount
   useEffect(() => {
@@ -95,7 +88,7 @@ export function Translator() {
           <Selector
             onValueChange={(value) => setSourceLanguage(value)}
             value={sourceLanguage}
-            options={LANGUAGES.map((lang) => ({
+            options={sourceLanguages.map((lang) => ({
               value: lang.code,
               label: lang.name,
             }))}
@@ -107,7 +100,7 @@ export function Translator() {
         <button
           onClick={swapLanguages}
           disabled={sourceLanguage === "auto"}
-          className="text-xl text-muted-foreground hover:text-foreground cursor-pointer"
+          className="text-xl text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           ⇄
         </button>
@@ -116,7 +109,7 @@ export function Translator() {
           <Selector
             onValueChange={(value) => setTargetLanguage(value)}
             value={targetLanguage}
-            options={LANGUAGES.map((lang) => ({
+            options={targetLanguages.map((lang) => ({
               value: lang.code,
               label: lang.name,
             }))}
@@ -132,6 +125,12 @@ export function Translator() {
           onChange={(e) => setInputText(e.target.value)}
           placeholder="Enter text to translate"
           className="w-full min-h-30"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              handleTranslate();
+            }
+          }}
         />
       </div>
 
@@ -154,22 +153,23 @@ export function Translator() {
       </div>
 
       {error && (
-        <div style={{ color: "red", marginBottom: "15px" }}>{error}</div>
+        <div className="text-destructive text-sm p-2 bg-destructive/10 rounded-md">
+          {error}
+        </div>
       )}
 
-      <div className="flex  gap-4 items-center">
+      <div className="flex gap-4 items-center">
         <div className="h-[1px] bg-border w-full my-4"></div>
         <div className="text-muted-foreground flex items-center justify-center gap-1 shrink-0">
           <span className="text-xs">Translated</span>
           <BookOpenCheck className="size-3 text-green-400" />
         </div>
-
         <div className="h-[1px] bg-border w-full my-4"></div>
       </div>
 
       <div className="flex flex-col gap-1">
-        <section className="text-sm p-2 bg-muted rounded-md">
-          {translatedText + `11111`}
+        <section className="text-sm p-2 bg-muted rounded-md min-h-[60px]">
+          {translatedText || "Translation will appear here..."}
         </section>
         <div className="flex justify-end items-center gap-2">
           <Button
@@ -177,8 +177,11 @@ export function Translator() {
             variant="ghost"
             className="hover:bg-transparent cursor-pointer"
             onClick={() => {
-              navigator.clipboard.writeText(translatedText);
+              if (translatedText) {
+                navigator.clipboard.writeText(translatedText);
+              }
             }}
+            disabled={!translatedText}
           >
             <Copy className="size-4" />
           </Button>
@@ -187,72 +190,22 @@ export function Translator() {
             variant="ghost"
             className="hover:bg-transparent cursor-pointer"
             onClick={() => {
-              saveTranslation({
-                originalText: inputText,
-                translatedText,
-                sourceLanguage,
-                targetLanguage,
-                timestamp: Date.now(),
-              });
+              if (translatedText) {
+                saveTranslation({
+                  originalText: inputText,
+                  translatedText,
+                  sourceLanguage,
+                  targetLanguage,
+                  timestamp: Date.now(),
+                });
+              }
             }}
+            disabled={!translatedText}
           >
             <Save className="size-4" />
           </Button>
         </div>
       </div>
-
-      {/* <div>
-        <button
-          onClick={() => setShowHistory(!showHistory)}
-          style={{
-            width: "100%",
-            padding: "10px",
-            backgroundColor: "#f1f1f1",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
-          {showHistory
-            ? "Hide Translation History"
-            : "Show Translation History"}
-        </button>
-
-        {showHistory && (
-          <div style={{ marginTop: "15px" }}>
-            <h2>Translation History</h2>
-            {history.length === 0 ? (
-              <p>No translation history yet.</p>
-            ) : (
-              <div>
-                {history.map((item, index) => (
-                  <div
-                    key={item.timestamp}
-                    style={{
-                      padding: "10px",
-                      marginBottom: "10px",
-                      border: "1px solid #ddd",
-                      borderRadius: "4px",
-                    }}
-                  >
-                    <div style={{ marginBottom: "5px" }}>
-                      <strong>Original ({item.sourceLanguage}):</strong>{" "}
-                      {item.originalText}
-                    </div>
-                    <div style={{ marginBottom: "5px" }}>
-                      <strong>Translation ({item.targetLanguage}):</strong>{" "}
-                      {item.translatedText}
-                    </div>
-                    <div style={{ fontSize: "12px", color: "#888" }}>
-                      {new Date(item.timestamp).toLocaleString()}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div> */}
     </div>
   );
 }
