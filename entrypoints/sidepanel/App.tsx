@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import './App.css';
-import { Translator } from '../components/translator';
+import { App as MainApp } from '../components/app';
 
 function App() {
   const [isDark, setIsDark] = useState(false);
@@ -37,7 +37,7 @@ function App() {
 
   return (
     <div className="sidepanel-app min-h-screen bg-background text-foreground text-sm">
-      <Translator />
+      <MainApp />
     </div>
   );
 }

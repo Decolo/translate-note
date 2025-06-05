@@ -2,15 +2,69 @@ import OpenAI from 'openai';
 import { ChatCompletionMessage } from 'openai/resources.js';
 import { getLanguageName } from '@/lib/constants';
 
-const openai = new OpenAI({
-  baseURL: 'https://openrouter.ai/api/v1',
-  apiKey: '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',
-  defaultHeaders: {
-    'HTTP-Referer': 'www.learn-lang-copilot.com', // Optional. Site URL for rankings on openrouter.ai.
-    'X-Title': 'learn-lang-copilot', // Optional. Site title for rankings on openrouter.ai.
-  },
-  dangerouslyAllowBrowser: true,
-});
+// Remove hardcoded API key - use dynamic client initialization
+let openaiClient: OpenAI | null = null;
+
+// Function to initialize OpenAI client with user's API key
+async function getOpenAIClient(): Promise<OpenAI> {
+  if (!openaiClient) {
+    const apiKey = await getApiKey();
+    if (!apiKey) {
+      throw new Error("API key not configured. Please set your API key in settings.");
+    }
+    
+    openaiClient = new OpenAI({
+      baseURL: 'https://openrouter.ai/api/v1',
+      apiKey: apiKey,
+      defaultHeaders: {
+        'HTTP-Referer': 'www.learn-lang-copilot.com', // Optional. Site URL for rankings on openrouter.ai.
+        'X-Title': 'learn-lang-copilot', // Optional. Site title for rankings on openrouter.ai.
+      },
+      dangerouslyAllowBrowser: true,
+    });
+  }
+  return openaiClient;
+}
+
+// Function to get API key from storage
+async function getApiKey(): Promise<string | null> {
+  try {
+    const result = await browser.storage.local.get('openai_api_key');
+    return result.openai_api_key || null;
+  } catch (error) {
+    console.error("Error getting API key:", error);
+    return null;
+  }
+}
+
+// Function to set API key
+export async function setApiKey(apiKey: string): Promise<void> {
+  try {
+    await browser.storage.local.set({ 'openai_api_key': apiKey });
+    // Reset client to use new key
+    openaiClient = null;
+  } catch (error) {
+    console.error("Error setting API key:", error);
+    throw new Error("Failed to save API key");
+  }
+}
+
+// Function to clear API key
+export async function clearApiKey(): Promise<void> {
+  try {
+    await browser.storage.local.remove('openai_api_key');
+    openaiClient = null;
+  } catch (error) {
+    console.error("Error clearing API key:", error);
+    throw new Error("Failed to clear API key");
+  }
+}
+
+// Function to check if API key is configured
+export async function isApiKeyConfigured(): Promise<boolean> {
+  const apiKey = await getApiKey();
+  return !!apiKey;
+}
 
 export interface TranslationResult {
   originalText: string;
@@ -63,6 +117,7 @@ export async function translateText(
       throw new Error("Text is required for translation");
     }
 
+    const openai = await getOpenAIClient(); // Get client with user's API key
     const systemPrompt = buildSystemPrompt(sourceLanguage, targetLanguage);
     
     const completion = await openai.chat.completions.create({
@@ -111,6 +166,8 @@ export async function translateText(
 // Helper function to detect language
 async function detectLanguage(text: string): Promise<string> {
   try {
+    const openai = await getOpenAIClient(); // Use user's API key
+    
     const completion = await openai.chat.completions.create({
       model: 'openai/gpt-4o',
       messages: [
@@ -153,6 +210,8 @@ export async function translateWithContext(
   }
 ): Promise<TranslationResult> {
   try {
+    const openai = await getOpenAIClient(); // Use user's API key
+    
     let enhancedSystemPrompt = buildSystemPrompt(sourceLanguage, targetLanguage);
     
     if (context) {

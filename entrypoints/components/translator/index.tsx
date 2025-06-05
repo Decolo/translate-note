@@ -4,10 +4,12 @@ import {
   Copy,
   Rocket,
   Save,
+  Settings as SettingsIcon,
 } from "lucide-react";
 import {
   translateText,
   TranslationResult,
+  isApiKeyConfigured,
 } from "../../services/translationService";
 import {
   saveTranslation,
@@ -28,24 +30,36 @@ export function Translator() {
   const [isTranslating, setIsTranslating] = useState(false);
   const [error, setError] = useState("");
   const [history, setHistory] = useState<TranslationResult[]>([]);
+  const [hasApiKey, setHasApiKey] = useState(false);
 
   // Get language options
   const sourceLanguages = getSourceLanguages();
   const targetLanguages = getTargetLanguages();
 
-  // Load translation history on component mount
+  // Load translation history and check API key on component mount
   useEffect(() => {
     const loadHistory = async () => {
       const translationHistory = await getTranslationHistory();
       setHistory(translationHistory);
     };
 
+    const checkApiKey = async () => {
+      const configured = await isApiKeyConfigured();
+      setHasApiKey(configured);
+    };
+
     loadHistory();
+    checkApiKey();
   }, []);
 
   const handleTranslate = async () => {
     if (!inputText.trim()) {
       setError("Please enter text to translate");
+      return;
+    }
+
+    if (!hasApiKey) {
+      setError("API key not configured. Please set your API key in settings.");
       return;
     }
 
@@ -65,8 +79,14 @@ export function Translator() {
 
       // Update history state
       setHistory([result, ...history]);
-    } catch (error) {
-      setError("Translation failed. Please try again.");
+    } catch (error: any) {
+      // Handle specific API key errors
+      if (error.message?.includes("API key not configured")) {
+        setError("API key not configured. Please set your API key in settings.");
+        setHasApiKey(false);
+      } else {
+        setError("Translation failed. Please check your API key and try again.");
+      }
       console.error(error);
     } finally {
       setIsTranslating(false);
@@ -144,7 +164,7 @@ export function Translator() {
           <Button
             size="sm"
             onClick={handleTranslate}
-            disabled={isTranslating || !inputText.trim()}
+            disabled={isTranslating || !inputText.trim() || !hasApiKey}
           >
             <Rocket className="size-4" />
             {isTranslating ? "Translating..." : "Translate"}
@@ -155,6 +175,23 @@ export function Translator() {
       {error && (
         <div className="text-destructive text-sm p-2 bg-destructive/10 rounded-md">
           {error}
+          {error.includes("API key") && (
+            <div className="mt-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  // This would need to be handled by parent component
+                  // For now, just show a message
+                  alert("Please go to Settings to configure your API key");
+                }}
+                className="text-xs"
+              >
+                <SettingsIcon className="size-3 mr-1" />
+                Go to Settings
+              </Button>
+            </div>
+          )}
         </div>
       )}
 
