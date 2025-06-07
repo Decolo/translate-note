@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import {
   BookOpenCheck,
   Copy,
+  Languages,
   Rocket,
   Save,
   Settings as SettingsIcon,
@@ -103,10 +104,15 @@ export function Translator() {
 
   return (
     <div className="p-4 flex flex-col gap-3">
+      <div className="flex items-center gap-2 mb-4">
+        <Languages className="size-3" />
+        <h2 className="text-xs font-semibold">Translator</h2>
+      </div>
+
       <div className="flex justify-between gap-2">
         <div className="w-1/2">
           <Selector
-            onValueChange={(value) => setSourceLanguage(value)}
+            onChange={(value) => setSourceLanguage(value)}
             value={sourceLanguage}
             options={sourceLanguages.map((lang) => ({
               value: lang.code,
@@ -127,7 +133,7 @@ export function Translator() {
 
         <div className="w-1/2">
           <Selector
-            onValueChange={(value) => setTargetLanguage(value)}
+            onChange={(value) => setTargetLanguage(value)}
             value={targetLanguage}
             options={targetLanguages.map((lang) => ({
               value: lang.code,

@@ -3,6 +3,8 @@ export interface Language {
   name: string;
 }
 
+export const TN_API_TOKEN = "TN_API_TOKEN";
+
 export const LANGUAGES: Language[] = [
   { code: "auto", name: "Detect Language" },
   { code: "en", name: "English" },

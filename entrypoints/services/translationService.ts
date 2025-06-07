@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { ChatCompletionMessage } from 'openai/resources.js';
-import { getLanguageName } from '@/lib/constants';
+import { getLanguageName, TN_API_TOKEN } from '@/lib/constants';
 
 // Remove hardcoded API key - use dynamic client initialization
 let openaiClient: OpenAI | null = null;
@@ -29,8 +29,8 @@ async function getOpenAIClient(): Promise<OpenAI> {
 // Function to get API key from storage
 async function getApiKey(): Promise<string | null> {
   try {
-    const result = await browser.storage.local.get('openai_api_key');
-    return result.openai_api_key || null;
+    const result = await browser.storage.local.get(TN_API_TOKEN);
+    return result.TN_API_TOKEN || null;
   } catch (error) {
     console.error("Error getting API key:", error);
     return null;
@@ -40,7 +40,7 @@ async function getApiKey(): Promise<string | null> {
 // Function to set API key
 export async function setApiKey(apiKey: string): Promise<void> {
   try {
-    await browser.storage.local.set({ 'openai_api_key': apiKey });
+    await browser.storage.local.set({ TN_API_TOKEN: apiKey });
     // Reset client to use new key
     openaiClient = null;
   } catch (error) {
@@ -52,7 +52,7 @@ export async function setApiKey(apiKey: string): Promise<void> {
 // Function to clear API key
 export async function clearApiKey(): Promise<void> {
   try {
-    await browser.storage.local.remove('openai_api_key');
+    await browser.storage.local.remove(TN_API_TOKEN);
     openaiClient = null;
   } catch (error) {
     console.error("Error clearing API key:", error);

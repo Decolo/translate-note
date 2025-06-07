@@ -10,7 +10,7 @@ const Selector = ({
     className,
     placeholder,
     options,
-    onValueChange,
+    onChange,
     value,
 }: {
     className?: string;
@@ -19,11 +19,11 @@ const Selector = ({
         value: string;
         label: string;
     }[];
-    onValueChange: (value: string) => void;
+    onChange: (value: string) => void;
     value: string;
 }) => {
   return (
-    <Select onValueChange={onValueChange} value={value}>
+    <Select onValueChange={onChange} value={value}>
       <SelectTrigger className={className}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>

@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { setApiKey, clearApiKey, isApiKeyConfigured } from "../../services/translationService";
 import { Settings as SettingsIcon, Key, ExternalLink, Shield, AlertCircle } from "lucide-react";
+import { Select } from "@/components/ui/select";
+import ModelSelector from "../model-selector";
 
 export function Settings() {
   const [apiKey, setApiKeyState] = useState("");
@@ -11,18 +13,6 @@ export function Settings() {
   const [showApiKey, setShowApiKey] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    // Check if API key is already configured
-    const checkApiKey = async () => {
-      try {
-        const configured = await isApiKeyConfigured();
-        setIsConfigured(configured);
-      } catch (error) {
-        console.error("Error checking API key:", error);
-      }
-    };
-    checkApiKey();
-  }, []);
 
   const handleSaveApiKey = async () => {
     if (!apiKey.trim()) {
@@ -65,18 +55,13 @@ export function Settings() {
   return (
     <div className="p-4 space-y-6">
       <div className="flex items-center gap-2 mb-4">
-        <SettingsIcon className="size-5" />
-        <h2 className="text-lg font-semibold">Settings</h2>
+        <SettingsIcon className="size-3" />
+        <h2 className="text-xs font-semibold">Settings</h2>
       </div>
       
       <div className="space-y-4">
         <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Key className="size-4" />
-            <label className="block text-sm font-medium">
-              OpenRouter API Key
-            </label>
-          </div>
+          <ModelSelector />
           
           {isConfigured ? (
             <div className="space-y-3">
@@ -147,34 +132,11 @@ export function Settings() {
           </h3>
           <div className="text-xs text-muted-foreground space-y-2">
             <p>• Your API key is stored locally in your browser and never shared</p>
-            <p>• All translation requests go directly from your browser to OpenRouter</p>
             <p>• You maintain full control over your API usage and costs</p>
             <p>• Remove your API key anytime to stop all requests</p>
           </div>
         </div>
         
-        <div className="space-y-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-          <h3 className="text-sm font-medium flex items-center gap-2">
-            <ExternalLink className="size-4" />
-            Getting Your API Key
-          </h3>
-          <div className="text-xs text-muted-foreground space-y-2">
-            <p>1. Visit <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">OpenRouter.ai</a></p>
-            <p>2. Sign up for an account</p>
-            <p>3. Go to the API Keys section</p>
-            <p>4. Create a new API key</p>
-            <p>5. Copy and paste it here</p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            onClick={() => window.open('https://openrouter.ai', '_blank')}
-          >
-            <ExternalLink className="size-4 mr-2" />
-            Open OpenRouter.ai
-          </Button>
-        </div>
       </div>
     </div>
   );
